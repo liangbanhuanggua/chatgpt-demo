@@ -44,6 +44,7 @@ export default defineConfig({
   transformers: [transformerVariantGroup(), transformerDirectives()],
   shortcuts: [{
     'bg-base': 'bg-light-100 dark:bg-[#1c1c1c]',
+    'bg-base-50': 'bg-[#fbfbfb] dark:bg-[#1e1e1e]',
     'bg-base-100': 'bg-light-200 dark:bg-[#222222]',
     'bg-blur': 'bg-light-200/85 dark:bg-[#222222]/85 backdrop-blur-xl backdrop-saturate-150',
     'bg-sidebar': 'bg-light-400 dark:bg-[#191919]',
