@@ -1,4 +1,4 @@
-import { For, createSignal, onMount } from 'solid-js'
+import { For, createMemo, createSignal, onMount } from 'solid-js'
 import { useStore } from '@nanostores/solid'
 import {
   addConversation,
@@ -39,10 +39,12 @@ export default (props: Props) => {
   const [selectConversationType, setSelectConversationType] = createSignal<ConversationType>('continuous')
   const [selectProviderId, setSelectProviderId] = createSignal(providerMetaList[0]?.id)
   const selectProvider = () => providerMetaList.find(item => item.id === selectProviderId()) || null
+  const supportedConversationType = () => typeSelectList.filter(item => selectProvider()?.supportConversationType.includes(item.value))
 
   const handleProviderChange = (id: string) => {
     setSelectProviderId(id)
-    setSelectConversationType(selectProvider()?.supportConversationType[0] || 'continuous')
+    // TODO: This will crash the app
+    // setSelectConversationType(selectProvider()?.supportConversationType[0] || 'continuous')
   }
 
   const handleOpenIconSelector = () => {
@@ -83,9 +85,9 @@ export default (props: Props) => {
         <div class="fi justify-between gap-10 px-4 h-10">
           <h3 class="op-80 shrink-0">Conversation Type</h3>
           <Select
-            options={providerMetaList.map(item => ({ value: item.id, label: item.name, icon: item.icon }))}
-            value={selectProviderId}
-            setValue={handleProviderChange}
+            options={supportedConversationType()}
+            value={selectConversationType}
+            setValue={setSelectConversationType}
           />
         </div>
       </div>
