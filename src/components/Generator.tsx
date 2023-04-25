@@ -1,24 +1,31 @@
-import { Index, Show, createEffect, createSignal, onCleanup, onMount } from 'solid-js'
+import {
+  Index,
+  Show,
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+} from 'solid-js'
 import { useThrottleFn } from 'solidjs-use'
 import { generateSignature } from '@/utils/auth'
 import IconClear from './icons/Clear'
 import MessageItem from './MessageItem'
-import SystemRoleSettings from './SystemRoleSettings'
 import ErrorMessageItem from './ErrorMessageItem'
 import type { ChatMessage, ErrorMessage } from '@/types'
 
 export default () => {
   let inputRef: HTMLTextAreaElement
-  const [currentSystemRoleSettings, setCurrentSystemRoleSettings] = createSignal('')
-  const [systemRoleEditing, setSystemRoleEditing] = createSignal(false)
+  const [currentSystemRoleSettings, setCurrentSystemRoleSettings]
+    = createSignal('')
   const [messageList, setMessageList] = createSignal<ChatMessage[]>([])
   const [currentError, setCurrentError] = createSignal<ErrorMessage>()
-  const [currentAssistantMessage, setCurrentAssistantMessage] = createSignal('')
+  const [currentAssistantMessage, setCurrentAssistantMessage]
+    = createSignal('')
   const [loading, setLoading] = createSignal(false)
   const [controller, setController] = createSignal<AbortController>(null)
   const [isStick, setStick] = createSignal(false)
 
-  createEffect(() => (isStick() && smoothToBottom()))
+  createEffect(() => isStick() && smoothToBottom())
 
   onMount(() => {
     let lastPostion = window.scrollY
@@ -33,11 +40,13 @@ export default () => {
       if (localStorage.getItem('messageList'))
         setMessageList(JSON.parse(localStorage.getItem('messageList')))
 
-      if (localStorage.getItem('systemRoleSettings'))
-        setCurrentSystemRoleSettings(localStorage.getItem('systemRoleSettings'))
+      if (localStorage.getItem('systemRoleSettings')) {
+        setCurrentSystemRoleSettings(
+          localStorage.getItem('systemRoleSettings'),
+        )
+      }
 
-      if (localStorage.getItem('stickToBottom') === 'stick')
-        setStick(true)
+      if (localStorage.getItem('stickToBottom') === 'stick') setStick(true)
     } catch (err) {
       console.error(err)
     }
@@ -51,13 +60,14 @@ export default () => {
   const handleBeforeUnload = () => {
     localStorage.setItem('messageList', JSON.stringify(messageList()))
     localStorage.setItem('systemRoleSettings', currentSystemRoleSettings())
-    isStick() ? localStorage.setItem('stickToBottom', 'stick') : localStorage.removeItem('stickToBottom')
+    isStick()
+      ? localStorage.setItem('stickToBottom', 'stick')
+      : localStorage.removeItem('stickToBottom')
   }
 
   const handleButtonClick = async() => {
     const inputValue = inputRef.value
-    if (!inputValue)
-      return
+    if (!inputValue) return
 
     inputRef.value = ''
     setMessageList([
@@ -71,9 +81,14 @@ export default () => {
     instantToBottom()
   }
 
-  const smoothToBottom = useThrottleFn(() => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
-  }, 300, false, true)
+  const smoothToBottom = useThrottleFn(
+    () => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+    },
+    300,
+    false,
+    true,
+  )
 
   const instantToBottom = () => {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' })
@@ -103,7 +118,9 @@ export default () => {
           pass: storagePassword,
           sign: await generateSignature({
             t: timestamp,
-            m: requestMessageList?.[requestMessageList.length - 1]?.content || '',
+            m:
+              requestMessageList?.[requestMessageList.length - 1]?.content
+              || '',
           }),
         }),
         signal: controller.signal,
@@ -115,8 +132,7 @@ export default () => {
         throw new Error('Request failed')
       }
       const data = response.body
-      if (!data)
-        throw new Error('No data')
+      if (!data) throw new Error('No data')
 
       const reader = data.getReader()
       const decoder = new TextDecoder('utf-8')
@@ -188,8 +204,7 @@ export default () => {
   }
 
   const handleKeydown = (e: KeyboardEvent) => {
-    if (e.isComposing || e.shiftKey)
-      return
+    if (e.isComposing || e.shiftKey) return
 
     if (e.keyCode === 13) {
       e.preventDefault()
@@ -199,43 +214,39 @@ export default () => {
 
   return (
     <div my-6>
-      <SystemRoleSettings
-        canEdit={() => messageList().length === 0}
-        systemRoleEditing={systemRoleEditing}
-        setSystemRoleEditing={setSystemRoleEditing}
-        currentSystemRoleSettings={currentSystemRoleSettings}
-        setCurrentSystemRoleSettings={setCurrentSystemRoleSettings}
-      />
       <Index each={messageList()}>
         {(message, index) => (
           <MessageItem
             role={message().role}
             message={message().content}
-            showRetry={() => (message().role === 'assistant' && index === messageList().length - 1)}
+            showRetry={() =>
+              message().role === 'assistant'
+              && index === messageList().length - 1
+            }
             onRetry={retryLastFetch}
           />
         )}
       </Index>
       {currentAssistantMessage() && (
-        <MessageItem
-          role="assistant"
-          message={currentAssistantMessage}
-        />
+        <MessageItem role="assistant" message={currentAssistantMessage} />
       )}
-      { currentError() && <ErrorMessageItem data={currentError()} onRetry={retryLastFetch} /> }
+      {currentError() && (
+        <ErrorMessageItem data={currentError()} onRetry={retryLastFetch} />
+      )}
       <Show
         when={!loading()}
         fallback={() => (
           <div class="gen-cb-wrapper">
             <span>AI is thinking...</span>
-            <div class="gen-cb-stop" onClick={stopStreamFetch}>Stop</div>
+            <div class="gen-cb-stop" onClick={stopStreamFetch}>
+              Stop
+            </div>
           </div>
         )}
       >
-        <div class="gen-text-wrapper" class:op-50={systemRoleEditing()}>
+        <div class="gen-text-wrapper">
           <textarea
             ref={inputRef!}
-            disabled={systemRoleEditing()}
             onKeyDown={handleKeydown}
             placeholder="请输入问题"
             autocomplete="off"
@@ -247,17 +258,25 @@ export default () => {
             rows="1"
             class="gen-textarea"
           />
-          <button onClick={handleButtonClick} disabled={systemRoleEditing()} gen-slate-btn>
+          <button onClick={handleButtonClick} gen-slate-btn>
             Send
           </button>
-          <button title="Clear" onClick={clear} disabled={systemRoleEditing()} gen-slate-btn>
+          <button title="Clear" onClick={clear} gen-slate-btn>
             <IconClear />
           </button>
         </div>
       </Show>
-      <div class="fixed bottom-5 left-5 rounded-md hover:bg-slate/10 w-fit h-fit transition-colors active:scale-90" class:stick-btn-on={isStick()}>
+      <div
+        class="fixed bottom-5 left-5 rounded-md hover:bg-slate/10 w-fit h-fit transition-colors active:scale-90"
+        class:stick-btn-on={isStick()}
+      >
         <div>
-          <button class="p-2.5 text-base" title="stick to bottom" type="button" onClick={() => setStick(!isStick())}>
+          <button
+            class="p-2.5 text-base"
+            title="stick to bottom"
+            type="button"
+            onClick={() => setStick(!isStick())}
+          >
             <div i-ph-arrow-line-down-bold />
           </button>
         </div>
