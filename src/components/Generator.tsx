@@ -23,19 +23,11 @@ export default () => {
     = createSignal('')
   const [loading, setLoading] = createSignal(false)
   const [controller, setController] = createSignal<AbortController>(null)
-  const [isStick, setStick] = createSignal(false)
+  const [isStick, setStick] = createSignal(true)
 
   createEffect(() => isStick() && smoothToBottom())
 
   onMount(() => {
-    let lastPostion = window.scrollY
-
-    window.addEventListener('scroll', () => {
-      const nowPostion = window.scrollY
-      nowPostion < lastPostion && setStick(false)
-      lastPostion = nowPostion
-    })
-
     try {
       if (localStorage.getItem('messageList'))
         setMessageList(JSON.parse(localStorage.getItem('messageList')))
